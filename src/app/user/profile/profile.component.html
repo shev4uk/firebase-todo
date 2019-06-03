@@ -1,0 +1,11 @@
+<p>
+  profile works!
+</p>
+{{ auth.user | async }}
+<ul>
+  <li *ngFor="let item of tasks | async">
+    {{ item.name }}
+  </li>
+</ul>
+<button (click)="auth.testData()">Test</button>
+<button (click)="auth.logout()">Log out</button>
