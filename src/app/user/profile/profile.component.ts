@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { AuthService } from 'src/app/shared/auth.service';
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
-import { AngularFireAuth } from '@angular/fire/auth';
+import { map } from 'rxjs/operators';
 
 @Component({
   selector: 'app-profile',
@@ -19,19 +19,22 @@ export class ProfileComponent implements OnInit {
   constructor(
     private auth: AuthService,
     private afs: AngularFirestore,
-    private afAuth: AngularFireAuth,
   ) { }
 
   ngOnInit() {
-    this.itemsCollection = this.afs.collection('list');
-    this.items = this.itemsCollection.valueChanges();
-
-    this.afAuth.authState.subscribe( user => {
-      console.log(user.uid);
-      const uid = user.uid;
-      this.userDoc = this.afs.doc(`user/${uid}`);
+      this.userDoc = this.afs.doc(`users/${this.auth.user}`);
+      this.userDoc.valueChanges().subscribe( data => {
+        console.log(data);
+      })
       this.tasks = this.userDoc.collection('list').valueChanges();
-    })
+      // this.tasks = this.userDoc.collection('list').snapshotChanges().pipe(
+      //   map(actions => 
+      //     actions.map(a => {
+      //     const data = a.payload.doc.data();
+      //     const id = a.payload.doc.id;
+      //     return { id, ...data };
+      //   }))
+      // );
   }
 
 }

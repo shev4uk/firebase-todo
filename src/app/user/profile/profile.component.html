@@ -1,7 +1,7 @@
 <p>
   profile works!
 </p>
-{{ auth.user | async }}
+{{ tasks | async | json}}
 <ul>
   <li *ngFor="let item of tasks | async">
     {{ item.name }}

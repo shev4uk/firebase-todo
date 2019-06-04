@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import * as firebase from 'firebase/app';
 import { AngularFireAuth } from '@angular/fire/auth';
 import { AngularFirestore, AngularFirestoreDocument } from '@angular/fire/firestore';
-import { Observable, of } from 'rxjs';
+import { Observable, of, Subject } from 'rxjs';
 import { Router } from '@angular/router';
 import { User } from  'firebase';
 
@@ -11,16 +11,16 @@ import { User } from  'firebase';
 })
 export class AuthService {
 
-  // user: Observable<User>;
+  user: string;
 
   constructor(
     private afAuth: AngularFireAuth,
     private afs: AngularFirestore,
     private router: Router,
   ) { 
-    // Define the user observable
     this.afAuth.authState.subscribe( user => {
-      console.log(user.uid);
+      if(user) this.user = user.uid;
+      console.log(this.user);
     })
   }
 
@@ -31,7 +31,6 @@ export class AuthService {
   manualLogin(user) {
     this.afAuth.auth.signInWithEmailAndPassword(user.email, user.password)
       .then(user => {
-        console.log(user);
         this.router.navigate(['user/profile']);
       })
       .catch(error => this.handleError(error) );
@@ -40,10 +39,10 @@ export class AuthService {
   manualReg(user) {
     console.log(user);
     return this.afAuth.auth.createUserWithEmailAndPassword(user.email, user.password)
-      .then(user => {
-        console.log(user);
-        // return this.setUserDoc(user) // create initial user document
-        this.router.navigate(['user/login']);
+      .then(data => {
+        console.log(data);
+        this.afs.collection(`users`).doc(data.user.uid).set({'email': data.user.email, 'userId':  data.user.uid });
+        this.router.navigate(['user/profile']);
       })
       .catch(error => this.handleError(error) );
   }
@@ -69,7 +68,10 @@ export class AuthService {
   }
 
   testData() {
-    this.afs.doc('user/8yaKhCbRIyQ6a5WixRRcyvaJEzC3').collection(`list`).add({'name': 'test 2'});
+    this.afs.doc(`users/${this.user}`).collection(`list`).add({'name': 'test 1'}).then(res => {
+      console.log(res);
+      this.afs.doc(`users/${this.user}`).collection(`list`).doc(res.id).collection(`item`).add({'name': 'item 1'})
+    });
   }
 
   logout(){
